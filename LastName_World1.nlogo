@@ -1,4 +1,18 @@
+;; Tanish Baranwal
+;; POE 6
+;; World 1
 
+;; Creating new function called setup
+to setup
+  ;; clears all patches
+  clear-all
+  ;; set entire world blue
+  ask patches [set pcolor blue]
+  ;; set patches with x coor > 6 to yello
+  ask patches with [pxcor > 6] [set pcolor yellow]
+  ;; set patches with x coor < 2 to white
+  ask patches with [pxcor < -12] [set pcolor white]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -26,6 +40,23 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+59
+158
+152
+191
+Build World
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
