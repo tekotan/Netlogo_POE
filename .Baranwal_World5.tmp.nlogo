@@ -1,27 +1,21 @@
 ;; Tanish Baranwal
 ;; POE 6
-;; World 4
+;; World 5
 
 ;; create setup function
-
 to setup
   ;; clear all patches
   clear-all
-  ;; set all patches to black
-  ask patches [set pcolor black]
-  ;; add first gray strip
-  ask patches with [pycor < 10 and pycor > 8] [set pcolor gray]
-  ;; set patches with pxcor greater than -1 to orange
-  ask patches with [pxcor > -1] [set pcolor orange]
-  ;; add second gray strip
-  ask patches with [pycor < 6 and pycor > 4] [set pcolor gray]
-  ;; add third gray strip
-  ask patches with [pycor < 2 and pycor > 0] [set pcolor gray]
-  ;; add fourth gray strip
-  ask patches with [pycor < -2 and pycor > -4] [set pcolor gray]
-  ;; set patches from -13 below to yellow
-  ask patches with [pxcor < -13] [set pcolor yellow]
-  ;; create
+  ;; set background to magenta
+  ask patches [set pcolor magenta]
+  ;; create 4 radius circle around 0, 0
+  ask patch 0 0 [ask patches in-radius 4 [set pcolor pink]]
+  ;; create 2 radius circle around
+  ask patch 6 6 [ask patches in-radius 2 [set pcolor blue]]
+  ;; create 4 radius circle around 0, 0
+  ask patch -4 -2 [ask patches in-radius 1 [set pcolor green]]
+  ;; create 4 radius circle around 0, 0
+  ask patch 5 -3 [ask patches in-radius 3 [set pcolor yellow]]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -52,10 +46,10 @@ ticks
 30.0
 
 BUTTON
-100
-130
-163
-163
+39
+154
+102
+187
 NIL
 setup
 NIL

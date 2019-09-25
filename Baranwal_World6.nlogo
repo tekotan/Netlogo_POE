@@ -1,27 +1,53 @@
 ;; Tanish Baranwal
 ;; POE 6
-;; World 4
+;; World 6
 
-;; create setup function
-
+;; create function setup
 to setup
   ;; clear all patches
   clear-all
-  ;; set all patches to black
-  ask patches [set pcolor black]
-  ;; add first gray strip
-  ask patches with [pycor < 10 and pycor > 8] [set pcolor gray]
-  ;; set patches with pxcor greater than -1 to orange
-  ask patches with [pxcor > -1] [set pcolor orange]
-  ;; add second gray strip
-  ask patches with [pycor < 6 and pycor > 4] [set pcolor gray]
-  ;; add third gray strip
-  ask patches with [pycor < 2 and pycor > 0] [set pcolor gray]
-  ;; add fourth gray strip
-  ask patches with [pycor < -2 and pycor > -4] [set pcolor gray]
-  ;; set patches from -13 below to yellow
-  ask patches with [pxcor < -13] [set pcolor yellow]
-  ;; create
+  ;; set all patches to blue
+  ask patches [set pcolor blue]
+  ;; set all patches in Q2 to black
+  ask patches with [pxcor < 0 and pycor >= 0] [set pcolor black]
+  ;; set all patches in Q4 to yello
+  ask patches with [pxcor >= 0 and pycor <= 0] [set pcolor yellow]
+  ;; set all patches in Q3 to red
+  ask patches with [pxcor < 0 and pycor <= 0] [set pcolor red]
+  ;; create circle in center of the world
+  ask patch 0 0 [ask patches in-radius 3 [set pcolor pink]]
+  ;; creates 4 turtles at 0, 0
+  create-turtles 6
+  ;; sets turtle positions to random coordinates
+  ask turtles [setxy random-xcor random-ycor]
+  ;; sets the shape of the turtle to a Turtle
+  ask turtles [set shape "turtle"]
+  ;; set the size of the turtles to 4
+  ask turtles [set size 4]
+  ;; set the turtle color to white
+  ask turtles [set color white]
+  ;; set the direction of the turtle to a random direction
+  ask turtles [set heading random-float 360]
+  ;; set the turtle pen down
+  ask turtles [pen-down]
+  ;; if turtles are
+end
+
+;; create function go
+to go
+  ;; turtles move forward 1 patch
+  ask turtles [forward 0.01]
+  ;; if turtles touch pink then they die
+  ask turtles [if pcolor = pink[die]]
+  ;; if turtles touch red, go faster
+  ask turtles [if pcolor = red[forward 0.03]]
+  ;; if turtles touch yellow, go slower
+  ask turtles [if pcolor = yellow[back 0.0075]]
+  ;; if turtle touch blue then set random heading
+  ask turtles [if pcolor = blue[set heading random-float 360 setxy -8 -8]]
+  ;; if turtle touch black then set random y cor and x cor
+  ask turtles [if pcolor = black[setxy random-xcor random-ycor]]
+  wait 0.003
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -52,13 +78,30 @@ ticks
 30.0
 
 BUTTON
-100
-130
-163
-163
+48
+211
+111
+244
 NIL
 setup
 NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+67
+157
+130
+190
+NIL
+go
+T
 1
 T
 OBSERVER
