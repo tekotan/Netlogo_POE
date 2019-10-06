@@ -1,68 +1,82 @@
 ;; Tanish Baranwal
 ;; POE 6
-;; World 7
+;; World 8 EC
 
-;; creates function for setup
+;; creates a function called setup
 to setup
-  ;; clear all patches
+  ;; clears the world
   clear-all
-  ;; sets all patches to yellow
-  ask patches [set pcolor yellow]
-  ;; creates 4 random circles 2 with blue and 2 with green colors
-  ask patch random-xcor random-ycor [ask patches in-radius 4 [set pcolor green]]
-  ask patch random-xcor random-ycor [ask patches in-radius 7 [set pcolor green]]
-  ask patch random-xcor random-ycor [ask patches in-radius 6 [set pcolor blue]]
-  ask patch random-xcor random-ycor [ask patches in-radius 2 [set pcolor blue]]
-  ;; creates the sheep turtles
-  create-turtles num_sheep
-  ;; configures turtles to be sheep form with random pos and direction
+  ;; sets all patches to blue
+  ask patches [set pcolor blue]
+  ;; sets patches in a border 2 thick to black
+  ask patches with [abs(pxcor) > 14 or abs(pycor) > 14] [
+    set pcolor black
+  ]
+  ;; creates turtles based on the slider
+  create-turtles num_people
+  ;; configures the turtles to a person and a random position and heading
   ask turtles [
     setxy random-xcor random-ycor
-    set shape "sheep"
+    set shape "person"
     set size 4
-    set color white
+    set color red
+    set heading random-float 360
+  ]
+  ;; creates the turtles based on the wolves slider
+  create-turtles num_wolves
+  ;; sets the turtles that are not people to wolves with a random positions and heading
+  ask turtles with [shape != "person"][
+    setxy random-xcor random-ycor
+    set shape "wolf"
+    set size 4
+    set color brown
     set heading random-float 360
   ]
 end
 
 to go
-  ;; asks all turtles to move forward 1
-  ask turtles [forward 1]
-  ;; ask turtles on the blue to create a blue sheep with set probability
-  ask turtles with [pcolor = blue] [
-    if random 100 < prb [
-      hatch 1
+  ;; asks any turtles within 3 of the black border and moves it away from it
+  ask turtles [if any? patches in-radius 3 with [pcolor = black] [
+    set heading towards min-one-of patches with [pcolor = black] [
+      distance myself
+    ]
+    right 180 forward 1
+  ]]
+  ;; asks the turtles with wolf shape to head towards the person turtles and move towards it
+  ask turtles with [shape = "wolf"][
+    set heading towards min-one-of other turtles with [shape = "person"][
+      distance myself
+    ]
+    forward 1
+  ]
+  ask turtles with [shape = "person"] [
+    ;; asks the turtles with person shape to head away from the wolves and move away
+    set heading towards min-one-of other turtles with [shape = "wolf"] [
+      distance myself
+    ]
+    ;; if the person turtles are within 1 of another then they hatch with a set probability
+    if any? other turtles in-radius 1 with [shape = "person"] [
+      if random 100 < probability_of_birth [
+        hatch 1
+      ]
       setxy random-xcor random-ycor
       set heading random-float 360
-      show "1 Sheep Hatched"
-      set size 3
-      set color blue
-      set shape "sheep"
     ]
-  ]
-  ;; ask turtles on green to spawn wolves
-  ask turtles with [pcolor = green] [
-    if random 100 < prb [
-      hatch 2
-      setxy random-xcor random-ycor
-      set heading random-float 360
-      show "2 Wolves Hatched"
-      set size 4
-      set color red
-      set shape "wolf"
+    ;; if the person turtle comes close to a wolf then dies
+    if any? turtles in-radius 2 with [shape = "wolf"] [
+      die
     ]
+    right 180
+    forward 1
   ]
-  ;; if wolf turtle is close to sheep then ask sheep turtle to die
-  ask turtles with [shape = "wolf"] [
-    ask other turtles in-radius 3 with [shape != "sheep"][die]
-    show "Wolf ate sheep!"
-  ]
-  ;; if there are no sheep then end the simulation
-  if not any? turtles with [shape = "sheep"] [
-    show "Simulation Ended"
+  ;; if there are no turtles wit
+  if not any? turtles with [shape = "person"] [
     stop
   ]
-  wait 0.3
+  if count turtles > 75 [
+    stop
+  ]
+  wait 0.5
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -92,41 +106,11 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
-SLIDER
-13
-122
-185
-155
-prb
-prb
-0
-100
-29.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-21
-204
-193
-237
-num_sheep
-num_sheep
-0
-25
-2.0
-1
-1
-NIL
-HORIZONTAL
-
 BUTTON
-44
-57
-107
-90
+35
+252
+98
+285
 NIL
 setup
 NIL
@@ -140,10 +124,10 @@ NIL
 1
 
 BUTTON
-127
-62
-190
-95
+136
+253
+199
+286
 NIL
 go
 T
@@ -156,26 +140,67 @@ NIL
 NIL
 1
 
+SLIDER
+30
+293
+202
+326
+num_people
+num_people
+0
+10
+8.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+28
+333
+200
+366
+probability_of_birth
+probability_of_birth
+0
+100
+60.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+29
+370
+201
+403
+num_wolves
+num_wolves
+0
+20
+8.0
+1
+1
+NIL
+HORIZONTAL
+
 @#$#@#$#@
 ## WHAT IS IT?
 
-This simulation shows an example of sheep and wolves in the wild.
+This world simulates people reproducing and wolves eating the people. It is a more accurate representation of the real world because the wolves are chasing the people and the people run away from the wolves.
 
 ## HOW IT WORKS
 
-When the sheep are on blue circles then they hatch blue sheep, and when the sheep are on green they spawn red wolves. If the wolves come close to the sheep then the sheep are "eaten" and they die.
+There are 3 sliders on the interface, one for the probability of human birth, one for the number of beginning people and one for the number of beginning wolves. The wolves follow any of the closest people and the people run away from the nearest wolves. If the people come close to each other then with the probability determined by the slider they reproduce and create another person. The people die if the people come in contact with the wolves. The simulation ends if there are no people left or if there are more than 75 turtles on the world.
 
 ## HOW TO USE IT
 
-Use setup to create the map and setup the patches with a yellow background with random blue and green circles. Use the sliders called probability_of_spawn and num_sheep to set the initial parameters of the simulation. Hit the go button to begin the simulation.
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
+Set the sliders to choice based on the number of wolves, people, and probability of birth. Then click the setup button to start the world and set up everything. Finally click go to begin the simulation. 
 
 ## THINGS TO TRY
 
-Move the sliders to try to see if you can get the wolves or sheep to overwhelm the other.
+Change the sliders and try to make the simulation run as long as possible without it stopping.
 @#$#@#$#@
 default
 true
