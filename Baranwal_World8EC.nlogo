@@ -1,52 +1,84 @@
 ;; Tanish Baranwal
 ;; POE 6
-;; World 7
+;; World 8 EC
 
-;; creates function for setup
+;; creates a function called setup
 to setup
-  ;; clear all patches
+  ;; clears the world
   clear-all
-  ask patches [set pcolor green]
-  ask patch 2 0 [ask patches in-radius 4 [set pcolor green]]
-  ask patch 0 -2 [ask patches in-radius 2 [set pcolor green]]
-  ask patch 4 0 [ask patches in-radius 6 [set pcolor blue]]
-  ask patch 0 -7 [ask patches in-radius 2 [set pcolor blue]]
-  create-turtles num_rabbits
+  ;; sets all patches to blue
+  ask patches [set pcolor blue]
+  ;; sets patches in a border 2 thick to black
+  ask patches with [abs(pxcor) > 14 or abs(pycor) > 14] [
+    set pcolor black
+  ]
+  ;; creates turtles based on the slider
+  create-turtles num_people
+  ;; configures the turtles to a person and a random position and heading
   ask turtles [
     setxy random-xcor random-ycor
-    set shape "rabbit"
+    set shape "person"
     set size 4
-    set color white
+    set color red
     set heading random-float 360
-    pen-down
   ]
+  ;; creates the turtles based on the wolves slider
+  create-turtles num_wolves
+  ;; sets the turtles that are not people to wolves with a random positions and heading
+  ask turtles with [shape != "person"][
+    setxy random-xcor random-ycor
+    set shape "wolf"
+    set size 4
+    set color brown
+    set heading random-float 360
+  ]
+end
 
 to go
-  ask turtles [forward 1]
-  ask turtles with [pcolor = blue] [
-    if random 100 < prb [
-      hatch 1
-      setxy random-xcor random-ycor
-      show "1 Rabbit Hatched"
-      set size 3
-      set color blue
-      set shape "rabbit"
+  ;; asks any turtles within 3 of the black border and moves it away from it
+  ask turtles [if any? patches in-radius 3 with [pcolor = black] [
+    set heading towards min-one-of patches with [pcolor = black] [
+      distance myself
     ]
-  ]
-  ask turtles with [pcolor = green] [
-    if random 100 < prb [
-      hatch 2
-      setxy random-xcor random-ycor
-      show "2 Wolves Hatched"
-      set size 4
-      set color red
-      set shape "wolf"
+    right 180 forward 1
+  ]]
+  ;; asks the turtles with wolf shape to head towards the person turtles and move towards it
+  ask turtles with [shape = "wolf"][
+    set heading towards min-one-of other turtles with [shape = "person"][
+      distance myself
     ]
+    forward 1
   ]
-  ask turtles with [shape = "wolf"] [
-    if n  [
-      ask
+  ask turtles with [shape = "person"] [
+    ;; asks the turtles with person shape to head away from the wolves and move away
+    set heading towards min-one-of other turtles with [shape = "wolf"] [
+      distance myself
+    ]
+    ;; if the person turtles are within 1 of another then they hatch with a set probability
+    if any? other turtles in-radius 1 with [shape = "person"] [
+      if random 100 < probability_of_birth [
+        hatch 1
+      ]
+      setxy random-xcor random-ycor
+      set heading random-float 360
+    ]
+    ;; if the person turtle comes close to a wolf then dies
+    if any? turtles in-radius 2 with [shape = "wolf"] [
+      die
+    ]
+    right 180
+    forward 1
+  ]
+  ;; if there are no person turtles then end the simulation
+  if not any? turtles with [shape = "person"] [
+    stop
+  ]
+  ;; if there are more turtles total than 75 then stop the simulation
+  if count turtles > 75 [
+    stop
+  ]
   wait 0.5
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -75,42 +107,101 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
+BUTTON
+35
+252
+98
+285
+NIL
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+136
+253
+199
+286
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+30
+293
+202
+326
+num_people
+num_people
+0
+10
+8.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+28
+333
+200
+366
+probability_of_birth
+probability_of_birth
+0
+100
+60.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+29
+370
+201
+403
+num_wolves
+num_wolves
+0
+20
+8.0
+1
+1
+NIL
+HORIZONTAL
+
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This world simulates people reproducing and wolves eating the people. It is a more accurate representation of the real world because the wolves are chasing the people and the people run away from the wolves.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+There are 3 sliders on the interface, one for the probability of human birth, one for the number of beginning people and one for the number of beginning wolves. The wolves follow any of the closest people and the people run away from the nearest wolves. If the people come close to each other then with the probability determined by the slider they reproduce and create another person. The people die if the people come in contact with the wolves. The simulation ends if there are no people left or if there are more than 75 turtles on the world.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
-
-## THINGS TO NOTICE
-
-(suggested things for the user to notice while running the model)
+Set the sliders to choice based on the number of wolves, people, and probability of birth. Then click the setup button to start the world and set up everything. Finally click go to begin the simulation. 
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Change the sliders and try to make the simulation run as long as possible without it stopping.
 @#$#@#$#@
 default
 true
@@ -417,7 +508,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.3
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
