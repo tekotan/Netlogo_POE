@@ -50,7 +50,7 @@ to go
   wait delta_t
   tick-advance delta_t
   set_speed
-  if [xcor of turtles with [shape "car"] < 10] [
+  if [xcor of turtles with [shape "car"] ] [
     stop
   ]
 end
