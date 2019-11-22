@@ -3,20 +3,25 @@ globals [
   vehicle_speed
   voltage
   current
+  cost
+  SPEED_CONSTANT
 ]
 
 to set_speed
   if circuit = "series" [
-    set voltage (num_hydrogen * 0.95 + num_solar * 2.78)
+    set voltage (num_hydrogen * 0.95 + num_solar * 2.78 + num_fusion_reactors * 100)
     set current ((min list 1 num_hydrogen * 1.3 + min list 1 num_solar) / 2)
     ]
   if circuit = "parallel" [
-      set current (num_hydrogen * 1.3 + num_solar * 0.110)
-      set voltage ((min list 1 num_hydrogen * 0.95 + min list 1 num_solar * 2.78) / 2)
+      set current (num_hydrogen * 1.3 + num_solar * 0.110 + num_fusion_reactors * 10)
+      set voltage ((min list 1 num_hydrogen * 0.95 + min list 1 num_solar * 2.78 + min list 1 num_fusion_reactors * 100) / 3)
     ]
-  set vehicle_speed (current * voltage / force)
+  set vehicle_speed (current * voltage / force / SPEED_CONSTANT)
 end
 
+to set_cost
+  set cost (num_hydrogen * 1000 + num_solar * 100 + num_fusion_reactors * 100000)
+end
 to setup_environment
 
   ask patches with [pycor < -8] [set pcolor green]
@@ -29,7 +34,7 @@ end
 to setup
   clear-all
   reset-ticks
-
+  set SPEED_CONSTANT (0.01)
   setup_environment
   set delta_t (1 / 100)
   create-turtles 1 [
@@ -41,18 +46,21 @@ to setup
     set ycor -9
   ]
   set_speed
+  set_cost
 end
 
 to go
+  while [[xcor] of turtle 0 < 24][
   ask turtles [
     forward vehicle_speed * delta_t
   ]
   wait delta_t
   tick-advance delta_t
   set_speed
-  if [xcor of turtles with [shape "car"] < 10] [
-    stop
+  ask patch 0 15 [set plabel "Time:"]
+  ask patch 0 14 [set plabel precision ticks 4]
   ]
+  stop
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -76,17 +84,17 @@ GRAPHICS-WINDOW
 32
 -16
 16
-1
-1
+0
+0
 1
 ticks
 100.0
 
 BUTTON
-22
-59
-85
-92
+38
+111
+128
+144
 NIL
 setup
 NIL
@@ -100,10 +108,10 @@ NIL
 1
 
 BUTTON
-38
-138
-101
-171
+129
+111
+206
+144
 NIL
 go
 T
@@ -125,32 +133,32 @@ num_hydrogen
 num_hydrogen
 0
 100
-87.0
+2.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-41
-276
-213
-309
+40
+256
+212
+289
 num_solar
 num_solar
 0
 100
-14.0
+0.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-96
-46
-153
-91
+38
+145
+130
+190
 NIL
 voltage
 17
@@ -158,10 +166,10 @@ voltage
 11
 
 MONITOR
-107
-111
-164
-156
+129
+144
+206
+189
 NIL
 current
 17
@@ -169,29 +177,55 @@ current
 11
 
 CHOOSER
-68
-22
-206
-67
+39
+326
+177
+371
 circuit
 circuit
 "series" "parallel"
-1
+0
 
 SLIDER
-45
-198
-217
-231
+39
+189
+211
+222
 force
 force
 0
+10
+1.3
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+40
+289
+212
+322
+num_fusion_reactors
+num_fusion_reactors
+0
 100
-26.0
+0.0
 1
 1
 NIL
 HORIZONTAL
+
+MONITOR
+39
+66
+205
+111
+NIL
+cost
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
