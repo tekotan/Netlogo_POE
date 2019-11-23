@@ -1,20 +1,26 @@
-;; Tanish Baranwal
-;; POE 6
-;; World 2
-
-;; create setup function
+globals [
+  delta_t
+]
 
 to setup
-  ;; clear all patches
   clear-all
-  ;; set all patches to red
-  ask patches [set pcolor red]
-  ;; set middle patches to violet
-  ask patches with [pxcor > -14 and pxcor < 6] [set pcolor violet]
-  ;; create 3 white strips at equal distances starting at pycor=14
-  ask patches with [pycor < 14 and pycor > 12] [set pcolor white]
-  ask patches with [pycor < 10and pycor > 8] [set pcolor white]
-  ask patches with [pycor < 6 and pycor > 4] [set pcolor white]
+  reset-ticks
+
+  set delta_t (1 / 100)
+  create-turtles 1 [
+    set shape "clock"
+    set heading 0
+    set color green
+    set size drum_size
+  ]
+end
+
+to go
+  ask turtles [
+    right ((angular_speed * delta_t * 360) / (2 * 3.14159))
+  ]
+  wait delta_t
+  tick-advance delta_t
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -45,12 +51,12 @@ ticks
 30.0
 
 BUTTON
-59
-102
-152
-135
-Build World
-setup
+14
+210
+77
+243
+NIL
+setup\n
 NIL
 1
 T
@@ -60,6 +66,53 @@ NIL
 NIL
 NIL
 1
+
+BUTTON
+123
+208
+186
+241
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+15
+283
+187
+316
+angular_speed
+angular_speed
+0
+20
+2.2
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+14
+247
+186
+280
+drum_size
+drum_size
+0
+10
+9.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -164,6 +217,13 @@ false
 0
 Circle -7500403 true true 0 0 300
 Circle -16777216 true false 30 30 240
+
+clock
+true
+0
+Circle -7500403 true true 30 30 240
+Polygon -16777216 true false 150 31 128 75 143 75 143 150 158 150 158 75 173 75
+Circle -16777216 true false 135 135 30
 
 cow
 false

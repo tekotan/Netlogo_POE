@@ -1,21 +1,68 @@
 ;; Tanish Baranwal
 ;; POE 6
-;; World 5
+;; World 7
 
-;; create setup function
+;; creates function for setup
 to setup
   ;; clear all patches
   clear-all
-  ;; set background to magenta
-  ask patches [set pcolor magenta]
-  ;; create 4 radius circle around 0, 0
-  ask patch 0 0 [ask patches in-radius 4 [set pcolor pink]]
-  ;; create 2 radius circle around
-  ask patch 6 6 [ask patches in-radius 2 [set pcolor blue]]
-  ;; create 4 radius circle around 0, 0
-  ask patch -4 -2 [ask patches in-radius 1 [set pcolor green]]
-  ;; create 4 radius circle around 0, 0
-  ask patch 5 -3 [ask patches in-radius 3 [set pcolor yellow]]
+  ;; sets all patches to yellow
+  ask patches [set pcolor yellow]
+  ;; creates 4 random circles 2 with blue and 2 with green colors
+  ask patch random-xcor random-ycor [ask patches in-radius 4 [set pcolor green]]
+  ask patch random-xcor random-ycor [ask patches in-radius 7 [set pcolor green]]
+  ask patch random-xcor random-ycor [ask patches in-radius 6 [set pcolor blue]]
+  ask patch random-xcor random-ycor [ask patches in-radius 2 [set pcolor blue]]
+  ;; creates the sheep turtles
+  create-turtles num_sheep
+  ;; configures turtles to be sheep form with random pos and direction
+  ask turtles [
+    setxy random-xcor random-ycor
+    set shape "sheep"
+    set size 4
+    set color white
+    set heading random-float 360
+  ]
+end
+
+to go
+  ;; asks all turtles to move forward 1
+  ask turtles [forward 1]
+  ;; ask turtles on the blue to create a blue sheep with set probability
+  ask turtles with [pcolor = blue] [
+    if random 100 < prb [
+      hatch 1
+      setxy random-xcor random-ycor
+      set heading random-float 360
+      show "1 Sheep Hatched"
+      set size 3
+      set color blue
+      set shape "sheep"
+    ]
+  ]
+  ;; ask turtles on green to spawn wolves
+  ask turtles with [pcolor = green] [
+    if random 100 < prb [
+      hatch 2
+      setxy random-xcor random-ycor
+      set heading random-float 360
+      show "2 Wolves Hatched"
+      set size 4
+      set color red
+      set shape "wolf"
+    ]
+  ]
+  ;; if wolf turtle is close to sheep then ask sheep turtle to die
+  ask turtles with [shape = "wolf"] [
+    ask other turtles in-radius 3 with [shape != "sheep"][die]
+    show "Wolf ate sheep!"
+  ]
+  ;; if there are no sheep then end the simulation
+  if not any? turtles with [shape = "sheep"] [
+    show "Simulation Ended"
+    stop
+  ]
+  wait 0.3
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -45,11 +92,41 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
+SLIDER
+13
+122
+185
+155
+prb
+prb
+0
+100
+29.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+21
+204
+193
+237
+num_sheep
+num_sheep
+0
+25
+2.0
+1
+1
+NIL
+HORIZONTAL
+
 BUTTON
-39
-154
-102
-187
+44
+57
+107
+90
 NIL
 setup
 NIL
@@ -62,18 +139,35 @@ NIL
 NIL
 1
 
+BUTTON
+127
+62
+190
+95
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This simulation shows an example of sheep and wolves in the wild.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+When the sheep are on blue circles then they hatch blue sheep, and when the sheep are on green they spawn red wolves. If the wolves come close to the sheep then the sheep are "eaten" and they die.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+Use setup to create the map and setup the patches with a yellow background with random blue and green circles. Use the sliders called probability_of_spawn and num_sheep to set the initial parameters of the simulation. Hit the go button to begin the simulation.
 
 ## THINGS TO NOTICE
 
@@ -81,23 +175,7 @@ NIL
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Move the sliders to try to see if you can get the wolves or sheep to overwhelm the other.
 @#$#@#$#@
 default
 true
@@ -404,7 +482,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.3
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

@@ -1,25 +1,72 @@
-;; Tanish Baranwal
-;; POE 6
-;; World 3
+globals [
+  delta_t
+  vehicle_speed
+  voltage
+  current
+  cost
+  SPEED_CONSTANT
+]
 
-;; create setup function
+to set_speed
+  if circuit = "series" [
+    set voltage (num_hydrogen * 0.95 + num_solar * 2.78 + num_fusion_reactors * 100)
+    set current ((min list 1 num_hydrogen * 1.3 + min list 1 num_solar) / 2)
+    ]
+  if circuit = "parallel" [
+      set current (num_hydrogen * 1.3 + num_solar * 0.110 + num_fusion_reactors * 10)
+      set voltage ((min list 1 num_hydrogen * 0.95 + min list 1 num_solar * 2.78 + min list 1 num_fusion_reactors * 100) / 3)
+    ]
+  set vehicle_speed (current * voltage / force / SPEED_CONSTANT)
+end
+
+to set_cost
+  set cost (num_hydrogen * 1000 + num_solar * 100 + num_fusion_reactors * 100000)
+end
+to setup_environment
+
+  ask patches with [pycor < -8] [set pcolor green]
+  ask patches with [pycor >= -8] [set pcolor blue]
+  ask patches [if pxcor > -22 and pxcor < -20 and pycor < -8 [set pcolor grey]]
+  ask patches [if pxcor > 28 and pxcor < 30 and pycor < -8 [set pcolor grey]]
+  ask patch -30 14 [ask patches in-radius 2 [set pcolor yellow]]
+end
+
 to setup
-  ;; clear all patches
   clear-all
-  ;; set all patches blue
-  ask patches [set pcolor blue]
-  ;; set patches less than pycor 2 to black
-  ask patches with [pycor < 2] [set pcolor black]
-  ;; set patches with pxcor -1 to 0 to green
-  ask patches with [pxcor > -1 and pxcor < 1] [set pcolor green]
-  ;; set patches with pxcor 1 to 2 to pink
-  ask patches with [pxcor >  and pxcor < 4] [set pcolor pink]
+  reset-ticks
+  set SPEED_CONSTANT (0.01)
+  setup_environment
+  set delta_t (1 / 100)
+  create-turtles 1 [
+    set shape "car"
+    set heading 90
+    set color red
+    set size 10
+    set xcor -26
+    set ycor -9
+  ]
+  set_speed
+  set_cost
+end
+
+to go
+  while [[xcor] of turtle 0 < 24][
+  ask turtles [
+    forward vehicle_speed * delta_t
+  ]
+  wait delta_t
+  tick-advance delta_t
+  set_speed
+  ask patch 0 15 [set plabel "Time:"]
+  ask patch 0 14 [set plabel precision ticks 4]
+  ]
+  stop
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+211
 10
-647
+1064
 448
 -1
 -1
@@ -33,22 +80,22 @@ GRAPHICS-WINDOW
 1
 1
 1
--16
-16
+-32
+32
 -16
 16
 0
 0
 1
 ticks
-30.0
+100.0
 
 BUTTON
-79
-131
-172
-164
-Build World
+38
+111
+128
+144
+NIL
 setup
 NIL
 1
@@ -59,6 +106,126 @@ NIL
 NIL
 NIL
 1
+
+BUTTON
+129
+111
+206
+144
+NIL
+go
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+40
+222
+212
+255
+num_hydrogen
+num_hydrogen
+0
+100
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+40
+256
+212
+289
+num_solar
+num_solar
+0
+100
+0.0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+38
+145
+130
+190
+NIL
+voltage
+17
+1
+11
+
+MONITOR
+129
+144
+206
+189
+NIL
+current
+17
+1
+11
+
+CHOOSER
+39
+326
+177
+371
+circuit
+circuit
+"series" "parallel"
+0
+
+SLIDER
+39
+189
+211
+222
+force
+force
+0
+10
+1.3
+0.1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+40
+289
+212
+322
+num_fusion_reactors
+num_fusion_reactors
+0
+100
+0.0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+39
+66
+205
+111
+NIL
+cost
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
