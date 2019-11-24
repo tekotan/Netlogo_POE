@@ -14,7 +14,7 @@ to set_speed
   ;; for a series configuration
   if circuit = "series" [
     set voltage (num_hydrogen * 0.95 + num_solar * 2.78 + num_fusion_reactors * 100)
-    set current ((min list 1 num_hydrogen * 1.3 + min list 1 num_solar * 0.11 + min list 1 num_fusion_reactors * 10))
+    set current ((min list 1 num_hydrogen * 1.3 + min list 1 num_solar ))
     ]
   ;; add up the current and calculate the voltage by adding the voltage for the first cell of each type of sell and each subsequent cell has no effect
   ;; for a parallel configuration
