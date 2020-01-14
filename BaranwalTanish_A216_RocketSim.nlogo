@@ -1,121 +1,56 @@
-;; set global variables for time, speed, and slider variables
 globals [
-  delta_t
-  vehicle_speed
-  voltage
-  current
-  cost
-  SPEED_CONSTANT
+  curr_x_dis
+  curr_y_dis
+  curr_x_vel
+  curr_y_vel
+  heading_ang
+  wind_vel
+  wind_ang
+  diff
 ]
-
-;; function to set the speed of the vehicle
-to set_speed
-  ;; add up the voltage and calculate the amperage by adding the current for the first cell of each type of sell and each subsequent cell has no effect
-  ;; for a series configuration
-  if circuit = "series" [
-    set voltage (num_hydrogen * 0.95 + num_solar * 2.78 + num_fusion_reactors * 100)
-    set current ((min list 1 num_hydrogen * 1.3 + min list 1 num_solar * 0.11 + min list 1 num_fusion_reactors * 10))
-    ]
-  ;; add up the current and calculate the voltage by adding the voltage for the first cell of each type of sell and each subsequent cell has no effect
-  ;; for a parallel configuration
-  if circuit = "parallel" [
-      set current (num_hydrogen * 1.3 + num_solar * 0.110 + num_fusion_reactors * 10)
-      set voltage ((min list 1 num_hydrogen * 0.95 + min list 1 num_solar * 2.78 + min list 1 num_fusion_reactors * 100))
-    ]
-  ;; set vehicle speed based on the calculated voltage and current values and the user selected force value.
-  ;; SPEED_CONSTANT is so that the simulation runs realistically
-  set vehicle_speed (current * voltage / force / SPEED_CONSTANT)
-end
-
-;; function to calculate the total cost of the power sources
-to set_cost
-  set cost (num_hydrogen * 1000 + num_solar * 100 + num_fusion_reactors * 100000)
-end
-;; function to setup the environment with the sky, sun, and ground with the finish and start lines
-to setup_environment
-
-  ask patches with [pycor < -8] [set pcolor green]
-  ask patches with [pycor >= -8] [set pcolor blue]
-  ask patches [if pxcor > -22 and pxcor < -20 and pycor < -8 [set pcolor grey]]
-  ask patches [if pxcor > 28 and pxcor < 30 and pycor < -8 [set pcolor grey]]
-  ask patch -30 14 [ask patches in-radius 2 [set pcolor yellow]]
-end
-;; setup function which calls all function for initial setup
 to setup
-  ;; clear all patches
   clear-all
-  ;; resets timer
   reset-ticks
-  ;; sets the speed constant, by trial and error
-  set SPEED_CONSTANT (0.1)
-  ;; calls setup environment
-  setup_environment
-  ;; sets delta_t to an arbitrary small number
-  set delta_t (1 / 100)
-  ;; creates the car turtle which starts on the left gray line
+  set diff (1 / 100)
+  ask patches with [pycor > -2] [set pcolor blue]
+  ask patches with [pycor < -2] [set pcolor green]
+  set curr_x_vel (init_vel * cos angle)
+  set curr_y_vel (init_vel * sin angle)
   create-turtles 1 [
     set shape "car"
-    set heading 90
-    set color red
-    set size 10
-    set xcor -26
-    set ycor -9
+    set heading 0
+    set color green
+    set size 2
+    setxy -10 -0.9
   ]
-  ;; create 2 wheel turtles which are at the corresponding position on the car.
-  create-turtles 1 [
-    set shape "wheel"
-    set color red
-    set size 3
-    set xcor -28.5
-    set ycor -11.5
-  ]
-  create-turtles 1 [
-    set shape "wheel"
-    set color red
-    set size 3
-    set xcor -23.5
-    set ycor -11.5
-  ]
-  ;; sets speed of the car to current values
-  set_speed
-  ;; sets cost of the car based on current values
-  set_cost
 end
-
 to go
-  ;; runs the go function until at the finish line at patch 30
-  while [[xcor] of turtle 0 < 24][
-  ;; moves the car turtle forward by the calculated speed
-  ask turtle 0 [
-    forward vehicle_speed * delta_t
-  ]
-  ;; spins the wheels based on angular velocity of the wheels and moves the wheels right be incrementing the xcor
-  ask turtles with [shape = "wheel"] [
-      right ((vehicle_speed / 3 * delta_t * 360) / (2 * 3.14159))
-      set xcor (xcor + vehicle_speed * delta_t)
+  if mode = "set init vel" [
+    while [[ycor] of turtle 0 > -1] [
+      set curr_x_dis (-10 + curr_x_vel * ticks)
+      set curr_y_dis (-0.9 + curr_y_vel * ticks)
+      set curr_y_vel (curr_y_vel - 32 * ticks)
+      ask turtle 0 [set heading (atan curr_x_vel  curr_y_vel)]
+      show (90 - atan curr_y_vel  curr_x_vel)
+      ask turtles [setxy curr_x_dis curr_y_dis]
+      wait diff
+      tick-advance diff
     ]
-  ;; wait and advances the timer by delta_t
-  wait delta_t
-  tick-advance delta_t
-  ;; sets speed of the car to current values
-  set_speed
-  ;; sets cost of the car based on current values
-  set_cost
-  ;; this line creates tplabelhe timer label which displays the time passed.
-  ask patch 0 15 [set plabel "Time:"]
-  ask patch 0 14 [set plabel precision ticks 4]
-  ]
   stop
+  ]
+  if mode = "set dist and angle" [
+
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-211
+210
 10
-1060
-446
+647
+448
 -1
 -1
-12.94
+13.0
 1
 10
 1
@@ -125,23 +60,23 @@ GRAPHICS-WINDOW
 1
 1
 1
--32
-32
+-16
+16
 -16
 16
 0
 0
 1
 ticks
-100.0
+30.0
 
 BUTTON
-38
-111
-128
-144
+26
+114
+89
+147
 NIL
-setup
+setup\n
 NIL
 1
 T
@@ -153,147 +88,101 @@ NIL
 1
 
 BUTTON
-129
-111
-206
-144
-NIL
-go
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-SLIDER
-40
-222
-212
-255
-num_hydrogen
-num_hydrogen
-0
-10
-0.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-40
-256
-212
-289
-num_solar
-num_solar
-0
-10
-2.0
-1
-1
-NIL
-HORIZONTAL
-
-MONITOR
-38
-145
-130
+29
+157
+92
 190
 NIL
-voltage
-2
+go\n
+T
 1
-11
-
-MONITOR
-129
-144
-206
-189
+T
+OBSERVER
 NIL
-current
-2
+NIL
+NIL
+NIL
 1
-11
+
+INPUTBOX
+23
+36
+178
+96
+init_vel
+50.0
+1
+0
+Number
+
+INPUTBOX
+29
+236
+256
+296
+angle
+45.0
+1
+0
+Number
 
 CHOOSER
-39
-326
-177
-371
-circuit
-circuit
-"series" "parallel"
+46
+206
+193
+251
+mode
+mode
+"set init vel" "set dist and angle"
 0
 
-SLIDER
-39
-189
-211
-222
-force
-force
-0
-10
-7.0
-0.1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-40
-289
-212
-322
-num_fusion_reactors
-num_fusion_reactors
-0
-10
+INPUTBOX
+37
+329
+192
+389
+desired_dist
 0.0
 1
-1
-NIL
-HORIZONTAL
-
-MONITOR
-39
-66
-205
-111
-NIL
-cost
-17
-1
-11
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?
 
-This model simulates the speed and behavior of a car run by solar, hydrogen, and fusion reactor cells. It mimics the laws of circuits and conservation of energy to provide an accurate estimation of the speed of the vehicle. This was made as a complement to the 1.3.2 Project and attempts to replicate the values obtained in the project. The model tries to show how a car's speed is influenced by how much input power it gets and how different power sources output different types of voltage and current values. The user can also see how their choices impact how much it costs to create or buy the car on the market.
+(a general understanding of what the model is trying to show or explain)
+
 ## HOW IT WORKS
 
-The agents in the model all depend on the central value of the vehicle's linear speed. The car itself moves forward at the linear speed and the wheels spin based on their consequent angular velocity calculated by dividing the linear speed by the radius of the wheels themselves. The linear speed is dependant on 3 values that change depending on the user's input:
-
- 1. Voltage
-	 - The voltage of the car is calculated based on the circuit configuration of the vehicle and the number and type of power cell used. If the configuration is in series, then the voltage is simply the sum of the voltage outputs of each cell used. If the configuration is parallel however, the voltage is calculated by adding the voltage for the first cell of each type of cell, each subsequent cell having no effect. This calculation of parallel voltage is not the most accurate of calculations but is performs reasonably well in the simulation itself.
- 2. Current
-	 - The current of the car is calculated based on the circuit configuration of the vehicle and the number and type of power cell used. If the configuration is in parallel, then the current is simply the sum of the current outputs of each cell used. If the configuration is series however, the current is calculated by adding the current for the first cell of each type of cell, each subsequent cell having no effect. This calculation of current in series is not the most accurate of calculations but is performs reasonably well in the simulation itself.
- 3. Force
-	 - The value of force is a user determined value
-
-The overall speed is determined by calculating the power input by multiplying voltage and current then dividing by force to get the speed of the vehicle.
-
-When the vehicle reaches the finish line then it and the timer stops.
+(what rules the agents use to create the overall behavior of the model)
 
 ## HOW TO USE IT
 
-The model has 4 sliders to change and a dropdown menu. The sliders control the force, and the number of each of the 3 possible power cells. The dropdown menu allows the user to select the type of circuit configuration. Once these values are set, click the setup button and then press go to start the car. 
+(how to use the model, including a description of each of the items in the Interface tab)
+
+## THINGS TO NOTICE
+
+(suggested things for the user to notice while running the model)
+
+## THINGS TO TRY
+
+(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+
+## EXTENDING THE MODEL
+
+(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+
+## NETLOGO FEATURES
+
+(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+
+## RELATED MODELS
+
+(models in the NetLogo Models Library and elsewhere which are of related interest)
+
+## CREDITS AND REFERENCES
+
+(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
 @#$#@#$#@
 default
 true
@@ -575,7 +464,7 @@ Polygon -10899396 true false 85 204 60 233 54 254 72 266 85 252 107 210
 Polygon -7500403 true true 119 75 179 75 209 101 224 135 220 225 175 261 128 261 81 224 74 135 88 99
 
 wheel
-true
+false
 0
 Circle -7500403 true true 3 3 294
 Circle -16777216 true false 30 30 240
