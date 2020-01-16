@@ -7,6 +7,7 @@ globals [
   wind_vel
   wind_ang
   diff
+  init_y_vel
 ]
 to setup
   clear-all
@@ -14,10 +15,19 @@ to setup
   set diff (1 / 100)
   ask patches with [pycor > -2] [set pcolor blue]
   ask patches with [pycor < -2] [set pcolor green]
-  set curr_x_vel (init_vel * cos angle)
-  set curr_y_vel (init_vel * sin angle)
+  if mode = "set init vel" [
+    set curr_x_vel (init_vel * cos angle)
+    set curr_y_vel (init_vel * sin angle)
+    set init_y_vel (init_vel * sin angle)
+  ]
+  if mode = "set dist and angle" [
+    set init_vel (sqrt(desired_dist * 32 / (sin (2 * angle))))
+    set curr_x_vel (init_vel * cos angle)
+    set curr_y_vel (init_vel * sin angle)
+    set init_y_vel (init_vel * sin angle)
+  ]
   create-turtles 1 [
-    set shape "car"
+    set shape "rocket"
     set heading 0
     set color green
     set size 2
@@ -25,29 +35,28 @@ to setup
   ]
 end
 to go
-  if mode = "set init vel" [
+  ;;f mode = "set init vel" [
     while [[ycor] of turtle 0 > -1] [
       set curr_x_dis (-10 + curr_x_vel * ticks)
       set curr_y_dis (-0.9 + curr_y_vel * ticks)
-      set curr_y_vel (curr_y_vel - 32 * ticks)
+    set curr_y_vel (init_y_vel * init_y_vel + 2 * 32 * ([ycor] of turtle 0 + 0.9) * 0.5)
       ask turtle 0 [set heading (atan curr_x_vel  curr_y_vel)]
-      show (90 - atan curr_y_vel  curr_x_vel)
       ask turtles [setxy curr_x_dis curr_y_dis]
       wait diff
       tick-advance diff
     ]
   stop
-  ]
-  if mode = "set dist and angle" [
+  ;;]
+  ;;if mode = "set dist and angle" [
 
-  ]
+  ;;]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
 10
 647
-448
+864
 -1
 -1
 13.0
@@ -62,8 +71,8 @@ GRAPHICS-WINDOW
 1
 -16
 16
--16
-16
+-32
+32
 0
 0
 1
@@ -110,7 +119,7 @@ INPUTBOX
 178
 96
 init_vel
-50.0
+136.79308520917186
 1
 0
 Number
@@ -121,7 +130,7 @@ INPUTBOX
 256
 296
 angle
-45.0
+80.0
 1
 0
 Number
@@ -134,7 +143,7 @@ CHOOSER
 mode
 mode
 "set init vel" "set dist and angle"
-0
+1
 
 INPUTBOX
 37
@@ -142,7 +151,7 @@ INPUTBOX
 192
 389
 desired_dist
-0.0
+200.0
 1
 0
 Number
@@ -375,6 +384,20 @@ Polygon -7500403 true true 165 180 165 210 225 180 255 120 210 135
 Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
+
+rocket
+true
+0
+Polygon -7500403 true true 120 165 75 285 135 255 165 255 225 285 180 165
+Polygon -1 true false 135 285 105 135 105 105 120 45 135 15 150 0 165 15 180 45 195 105 195 135 165 285
+Rectangle -7500403 true true 147 176 153 288
+Polygon -7500403 true true 120 45 180 45 165 15 150 0 135 15
+Line -7500403 true 105 105 135 120
+Line -7500403 true 135 120 165 120
+Line -7500403 true 165 120 195 105
+Line -7500403 true 105 135 135 150
+Line -7500403 true 135 150 165 150
+Line -7500403 true 165 150 195 135
 
 sheep
 false
