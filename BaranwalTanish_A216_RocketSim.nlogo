@@ -3,11 +3,9 @@ globals [
   curr_y_dis
   curr_x_vel
   curr_y_vel
-  heading_ang
-  wind_vel
-  wind_ang
   diff
   init_y_vel
+  init_x_vel
 ]
 to setup
   clear-all
@@ -16,14 +14,12 @@ to setup
   ask patches with [pycor > -2] [set pcolor blue]
   ask patches with [pycor < -2] [set pcolor green]
   if mode = "set init vel" [
-    set curr_x_vel (init_vel * cos angle)
-    set curr_y_vel (init_vel * sin angle)
+    set init_x_vel (init_vel * cos angle)
     set init_y_vel (init_vel * sin angle)
   ]
   if mode = "set dist and angle" [
     set init_vel (sqrt(desired_dist * 32 / (sin (2 * angle))))
-    set curr_x_vel (init_vel * cos angle)
-    set curr_y_vel (init_vel * sin angle)
+    set init_x_vel (init_vel * cos angle)
     set init_y_vel (init_vel * sin angle)
   ]
   create-turtles 1 [
@@ -35,21 +31,28 @@ to setup
   ]
 end
 to go
-  ;;f mode = "set init vel" [
-    while [[ycor] of turtle 0 > -1] [
-      set curr_x_dis (-10 + curr_x_vel * ticks)
-      set curr_y_dis (-0.9 + curr_y_vel * ticks)
-    set curr_y_vel (init_y_vel * init_y_vel + 2 * 32 * ([ycor] of turtle 0 + 0.9) * 0.5)
+  while [[ycor] of turtle 0 > -1] [
+    if mode != "set dist and angle" [
+      set curr_x_dis (-10 + init_x_vel * ticks + wind_force * cos(wind_angle) * ticks * ticks)
+      set curr_y_dis (-0.9 + init_y_vel * ticks - (16 + -1 * wind_force * sin(wind_angle) * 0.5) * ticks * ticks)
+      set curr_y_vel (init_y_vel - (32 - wind_force * sin(wind_angle)) * ticks)
+      set curr_x_vel (init_x_vel + (wind_force * cos(wind_angle)) * ticks)
       ask turtle 0 [set heading (atan curr_x_vel  curr_y_vel)]
       ask turtles [setxy curr_x_dis curr_y_dis]
       wait diff
       tick-advance diff
     ]
+    if mode = "set dist and angle" [
+      set curr_x_dis (-10 + curr_x_vel * ticks)
+      set curr_y_dis (-0.9 + init_y_vel * ticks - 16 * ticks * ticks)
+      set curr_y_vel (init_y_vel - 32 * ticks)
+      ask turtle 0 [set heading (atan curr_x_vel  curr_y_vel)]
+      ask turtles [setxy curr_x_dis curr_y_dis]
+      wait diff
+      tick-advance diff
+    ]
+  ]
   stop
-  ;;]
-  ;;if mode = "set dist and angle" [
-
-  ;;]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -80,10 +83,10 @@ ticks
 30.0
 
 BUTTON
-26
-114
-89
-147
+28
+156
+110
+189
 NIL
 setup\n
 NIL
@@ -97,10 +100,10 @@ NIL
 1
 
 BUTTON
-29
-157
-92
-190
+111
+156
+183
+189
 NIL
 go\n
 T
@@ -114,21 +117,21 @@ NIL
 1
 
 INPUTBOX
-23
-36
-178
-96
+28
+190
+183
+250
 init_vel
-136.79308520917186
+10.0
 1
 0
 Number
 
 INPUTBOX
-29
-236
-256
-296
+27
+250
+183
+310
 angle
 80.0
 1
@@ -136,22 +139,44 @@ angle
 Number
 
 CHOOSER
-46
-206
-193
-251
+26
+113
+187
+158
 mode
 mode
 "set init vel" "set dist and angle"
-1
+0
 
 INPUTBOX
-37
-329
-192
-389
+28
+309
+183
+369
 desired_dist
-200.0
+10.0
+1
+0
+Number
+
+INPUTBOX
+27
+370
+182
+430
+wind_force
+23.0
+1
+0
+Number
+
+INPUTBOX
+28
+432
+183
+492
+wind_angle
+89.0
 1
 0
 Number
