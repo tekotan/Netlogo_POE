@@ -1,3 +1,7 @@
+;; Tanish Baranwal
+;; Rocket Simulation
+
+;;initializing globals
 globals [
   curr_x_dis
   curr_y_dis
@@ -6,81 +10,103 @@ globals [
   diff
   init_y_vel
   init_x_vel
+  time
 ]
 to setup
+  ;; setting up the background by making half of the env blue and bottom half green
   clear-all
   reset-ticks
   set diff (1 / 100)
-  ask patches with [pycor > -2] [set pcolor blue]
-  ask patches with [pycor < -2] [set pcolor green]
+  ask patches with [pycor > -10] [set pcolor blue]
+  ask patches with [pycor < -10] [set pcolor green]
+  ;; if initial velocity is set, defining component init velocities
   if mode = "set init vel" [
     set init_x_vel (init_vel * cos angle)
     set init_y_vel (init_vel * sin angle)
   ]
+  ;; if initial distance is set, define init_vel using kinematic formula and then defining component init velocities
   if mode = "set dist and angle" [
     set init_vel (sqrt(desired_dist * 32 / (sin (2 * angle))))
     set init_x_vel (init_vel * cos angle)
     set init_y_vel (init_vel * sin angle)
   ]
+  ;; creating the rocket turtle at the left center of the screen
   create-turtles 1 [
     set shape "rocket"
     set heading 0
     set color green
     set size 2
-    setxy -10 -0.9
+    setxy -30 -9.9
   ]
 end
+
+
 to go
-  while [[ycor] of turtle 0 > -1] [
-    if mode != "set dist and angle" [
-      set curr_x_dis (-10 + init_x_vel * ticks + wind_force * cos(wind_angle) * ticks * ticks)
-      set curr_y_dis (-0.9 + init_y_vel * ticks - (16 + -1 * wind_force * sin(wind_angle) * 0.5) * ticks * ticks)
+  ;; runs the simulation while rocket is above the "ground"
+  while [[ycor] of turtle 0 > -10] [
+    ;; take into account wind force when init vel is set
+    if mode = "set init vel" [
+      ;; sets current x pos and current y pos using the general equation of pos = init_pos + v*t + 0.5 * a*t^2
+      set curr_x_dis (-30 + init_x_vel * ticks + wind_force * cos(wind_angle) * ticks * ticks)
+      set curr_y_dis (-9.9 + init_y_vel * ticks - (16 + -1 * wind_force * sin(wind_angle) * 0.5) * ticks * ticks)
+      ;; sets current x and y velocities for calculating heading of rocket using the general equation of vel = init_vel + a*t
       set curr_y_vel (init_y_vel - (32 - wind_force * sin(wind_angle)) * ticks)
       set curr_x_vel (init_x_vel + (wind_force * cos(wind_angle)) * ticks)
+      ;; sets the heading to the angle of the current velocity vector of the rocket calculated using the inverse tangent function
       ask turtle 0 [set heading (atan curr_x_vel  curr_y_vel)]
-      ask turtles [setxy curr_x_dis curr_y_dis]
+      ;; changes the rocket position to that which was calculated
+      ask turtle 0 [setxy curr_x_dis curr_y_dis]
+      ;; waiting diff and advancing ticks by diff for smoothness
       wait diff
       tick-advance diff
     ]
+    ;; do not take into account wind force when calculating distance (calculation of desired distance with wind in account in development)
     if mode = "set dist and angle" [
-      set curr_x_dis (-10 + curr_x_vel * ticks)
-      set curr_y_dis (-0.9 + init_y_vel * ticks - 16 * ticks * ticks)
+      ;; sets current x pos and current y pos using the general equation of pos = init_pos + v*t + 0.5 * a*t^2, where a for x pos is 0
+      set curr_x_dis (-30 + init_x_vel * ticks)
+      set curr_y_dis (-9.9 + init_y_vel * ticks - 16 * ticks * ticks)
+      ;; sets current y velocity for calculating heading of rocket using the general equation of vel = init_vel + a*t, don't need curr_x_vel since x vel is constant
       set curr_y_vel (init_y_vel - 32 * ticks)
-      ask turtle 0 [set heading (atan curr_x_vel  curr_y_vel)]
+      ;; sets the heading to the angle of the current velocity vector of the rocket calculated using the inverse tangent function
+      ask turtle 0 [set heading (atan init_x_vel  curr_y_vel)]
+      ;; changes the rocket position to that which was calculated
       ask turtles [setxy curr_x_dis curr_y_dis]
+      ;; waiting diff and advancing ticks by diff for smoothness
       wait diff
       tick-advance diff
     ]
+    ;; shows the time on the screen each iteration
+    set time (ticks)
   ]
   stop
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-10
-647
-864
+188
+111
+1166
+845
 -1
 -1
-13.0
+8.74
 1
 10
 1
 1
 1
 0
+0
+0
 1
-1
-1
--16
-16
+-35
+75
 -32
-32
+50
 0
 0
 1
 ticks
-30.0
+60.0
 
 BUTTON
 28
@@ -116,28 +142,6 @@ NIL
 NIL
 1
 
-INPUTBOX
-28
-190
-183
-250
-init_vel
-10.0
-1
-0
-Number
-
-INPUTBOX
-27
-250
-183
-310
-angle
-80.0
-1
-0
-Number
-
 CHOOSER
 26
 113
@@ -146,77 +150,143 @@ CHOOSER
 mode
 mode
 "set init vel" "set dist and angle"
-0
+1
 
-INPUTBOX
+SLIDER
 28
-309
-183
-369
+189
+184
+222
+init_vel
+init_vel
+0
+25
+28.31878384509013
+1
+1
+ft/s^2
+HORIZONTAL
+
+SLIDER
+29
+223
+185
+256
+angle
+angle
+0
+90
+43.0
+1
+1
+degrees
+HORIZONTAL
+
+SLIDER
+28
+256
+185
+289
 desired_dist
-10.0
-1
+desired_dist
 0
-Number
+50
+25.0
+1
+1
+ft
+HORIZONTAL
 
-INPUTBOX
+SLIDER
 27
-370
-182
-430
+289
+185
+322
 wind_force
-23.0
-1
+wind_force
 0
-Number
+20
+20.0
+1
+1
+ft-lbs
+HORIZONTAL
 
-INPUTBOX
-28
-432
-183
-492
+SLIDER
+27
+323
+184
+356
 wind_angle
-89.0
-1
+wind_angle
 0
-Number
+90
+45.0
+1
+1
+degrees
+HORIZONTAL
+
+MONITOR
+27
+357
+184
+402
+NIL
+time
+3
+1
+11
+
+MONITOR
+26
+403
+185
+448
+ vertical displacement
+curr_y_dis + 10.1
+1
+1
+11
+
+MONITOR
+26
+449
+183
+494
+horizontal displacement
+curr_x_dis + 30
+1
+1
+11
 
 @#$#@#$#@
+## Author Details:
+Tanish Baranwal, POE 6
+
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This model shows the path of a projectile launched at a certain velocity and affected by a certain wind force. It also shows the required velocity to launch a rocket at a desired angle and to a desired distance.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+The agent uses 4 fundamental equations of kinematics to function:
+
+v0 = sqrt(x * a / sin(2 * theta))
+vy = vy0 + ay*t
+vx = vx0 + ax*t
+x = x0 + vx0*t + ax*t^2
+y = y0 + vy0*t + ay*t^2
+
+In the above equations, the acceleration is the net acceleration in each direction.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+If selecting the set init vel option, the user can set all sliders except the distance to their desired values and setup then run the simulation using the setup and go buttons.
 
-## THINGS TO NOTICE
+If selecting the set desired dist and angle option, the user can only should only set the distance and angle slider, since all other sliders will not be used in this simulation
 
-(suggested things for the user to notice while running the model)
-
-## THINGS TO TRY
-
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
-
-## EXTENDING THE MODEL
-
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
-
-## NETLOGO FEATURES
-
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
-
-## RELATED MODELS
-
-(models in the NetLogo Models Library and elsewhere which are of related interest)
-
-## CREDITS AND REFERENCES
-
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+Note: Please do not use 90 degrees for the desired angle for option 2, which will lead to an overflow error in the program
 @#$#@#$#@
 default
 true
@@ -537,7 +607,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.3
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
